@@ -1,0 +1,44 @@
+{
+  "name": "@jsrsc/wallet-adapter-jinchan-wallets",
+  "version": "0.1.0",
+  "description": "",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-typescript": "^8.3.2",
+    "postcss": "^8.4.14",
+    "rollup": "^2.75.5",
+    "rollup-plugin-dts": "^4.2.2",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-typescript": "^1.0.1",
+    "rollup-plugin-typescript2": "^0.32.1",
+    "rollup-watch": "^4.3.1",
+    "typescript": "^4.7.2",
+    "typings": "^2.1.1"
+  },
+  "peerDependencies": {
+    "@types/react": "^18.0.10",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@solana/wallet-adapter-base": "^0.9.10",
+    "@solana/wallet-adapter-phantom": "^0.9.9",
+    "@solana/wallet-adapter-sollet": "^0.11.6"
+  }
+}

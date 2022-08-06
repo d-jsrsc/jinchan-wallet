@@ -1,0 +1,8 @@
+{
+  "name": "jinchan-wallet",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/jinchan-wallet"
+  ]
+}

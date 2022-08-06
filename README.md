@@ -1,4 +1,4 @@
-# Sol-Wallet
+# Jinchan-Wallet （金蟾钱包）
 
 做一款 Solana 的开源钱包
 
