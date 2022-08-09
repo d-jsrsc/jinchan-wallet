@@ -1,20 +1,46 @@
+// {
+//     "include": ["packages/*/*/src"],
+//     "exclude": ["node_modules", "packages/*/*/node_modules"],
+//     "compilerOptions": {
+// 		"target": "es5",
+// 		"module": "esnext",
+// 		"jsx": "react",
+// 		"sourceMap": true,
+// 		"outDir": "dist",
+// 		"strict": true,
+// 		"moduleResolution": "node",
+// 		"allowSyntheticDefaultImports": true,
+// 		"esModuleInterop": true,
+// 		"skipLibCheck": true,
+// 		"forceConsistentCasingInFileNames": true,
+// 		"declaration": true,
+// 		"declarationDir": "types",
+// 		"emitDeclarationOnly": true
+// 	}
+// }
 {
     "include": ["packages/*/*/src"],
     "exclude": ["node_modules", "packages/*/*/node_modules"],
     "compilerOptions": {
-		"target": "es5",
-		"module": "esnext",
-		"jsx": "react",
-		"sourceMap": true,
-		"outDir": "dist",
-		"strict": true,
-		"moduleResolution": "node",
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
-		"skipLibCheck": true,
-		"forceConsistentCasingInFileNames": true,
-		"declaration": true,
-		"declarationDir": "types",
-		"emitDeclarationOnly": true
-	}
+        "target": "es2019",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "noEmit": true,
+        "declaration": true,
+        "sourceMap": true,
+        "noEmitOnError": true,
+        "stripInternal": true,
+        "jsx": "react",
+        "strict": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "typeRoots": ["node_modules/@types"]
+    },
+    "typedocOptions": {
+        "entryPoints": ".",
+        "entryPointStrategy": "packages",
+        "out": "docs",
+        "readme": "README.md"
+    }
 }

@@ -14,6 +14,7 @@ build-extension
 extension
 
 dist
+lib
 
 # misc
 .DS_Store

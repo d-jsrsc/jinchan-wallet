@@ -2,8 +2,8 @@
   "name": "@jsrsc/wallet-adapter-jinchan-wallets",
   "version": "0.1.0",
   "description": "",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
@@ -39,6 +39,7 @@
   "dependencies": {
     "@solana/wallet-adapter-base": "^0.9.10",
     "@solana/wallet-adapter-phantom": "^0.9.9",
-    "@solana/wallet-adapter-sollet": "^0.11.6"
+    "@solana/wallet-adapter-sollet": "^0.11.6",
+    "@jsrsc/wallet-adapter-jinchan": "~0.1.0"
   }
 }
