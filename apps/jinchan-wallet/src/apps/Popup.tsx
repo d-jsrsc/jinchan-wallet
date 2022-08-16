@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useWallet } from '../AppProvider';
 import { Channels, Message } from '../chrome/events';
 import { ResMsgType } from '../utils/reqRes';
+import { decodeMessage } from '../utils/transactions';
 // import { Wallet } from '../Wallet';
 
 export default function App() {
@@ -89,6 +90,15 @@ export default function App() {
     }
   }, [request]);
 
+  useMemo(() => {
+    if (!wallet) return;
+    Promise.all(messages.map((m: any) => decodeMessage(wallet.connection, wallet, m))).then(
+      (msg) => {
+        console.log({ msg });
+      }
+    );
+  }, [messages, wallet]);
+
   if (!request) {
     // window.close();
     return null;
@@ -136,6 +146,31 @@ export default function App() {
             );
           }}>
           approve
+        </button>
+      </div>
+    );
+  }
+
+  if (request.method === 'signTransaction') {
+    return (
+      <div>
+        <p>some info about the transfer</p>
+        <button
+          onClick={async () => {
+            postMessage(
+              {
+                result: {
+                  signature: await wallet.createSignature(messages[0] as Uint8Array),
+                  publicKey: wallet.publicKey.toBase58()
+                },
+                id: request.id
+              },
+              () => {
+                popRequest();
+              }
+            );
+          }}>
+          Approve
         </button>
       </div>
     );
