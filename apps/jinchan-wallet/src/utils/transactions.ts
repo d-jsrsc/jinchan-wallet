@@ -23,7 +23,7 @@ import {
 //   NEW_ORDER_V3_OPEN_ORDERS_INDEX,
 //   NEW_ORDER_V3_OWNER_INDEX
 // } from '@project-serum/serum';
-// import { decodeTokenInstruction } from '@project-serum/token';
+import { decodeTokenInstruction, TOKEN_PROGRAM_ID } from '@project-serum/token';
 import { PublicKey } from '@solana/web3.js';
 import { Wallet } from '../Wallet';
 // import { TOKEN_PROGRAM_ID } from './tokens/instructions';
@@ -39,15 +39,23 @@ const marketCache: { [key: string]: any } = {};
 // let marketCacheConnection: null | Connection = null;
 const cacheDuration = 15 * 1000;
 
-export const decodeMessage = async (connection: Connection, wallet: Wallet, message: Buffer) => {
+export const decodeMessage = async (
+  connection: Connection,
+  wallet: Wallet,
+  // message: Uint8Array
+  transactionMessage: Message
+) => {
   // get message object
-  const transactionMessage = Message.from(message);
+  // const transactionMessage = Message.from(message);
+  console.log('transactionMessage', transactionMessage);
   if (!transactionMessage?.instructions || !transactionMessage?.accountKeys) {
     return;
   }
 
   // get owned keys (used for security checks)
   const publicKey = wallet.publicKey;
+
+  console.log('wallet publicKey', wallet.publicKey.toBase58());
 
   // get instructions
   const instructions: any[] = [];
@@ -73,10 +81,11 @@ const toInstruction = async (
   connection: Connection,
   publicKey: PublicKey,
   accountKeys: any[],
-  instruction: { programIdIndex: any; accounts: any; data: any },
+  instruction: { programIdIndex: any; accounts: any; data: string },
   transactionMessage: Message,
   index: number
 ) => {
+  console.log('instruction', instruction);
   if (instruction?.data == null || !instruction?.accounts || !instruction?.programIdIndex) {
     return;
   }
@@ -89,16 +98,18 @@ const toInstruction = async (
     return null;
   }
 
+  console.log('programId', programId.toString(), decoded);
+
   try {
     if (programId.equals(SystemProgram.programId)) {
       console.log('[' + index + '] Handled as system instruction');
       return handleSystemInstruction(publicKey, instruction, accountKeys);
+    } else if (programId.equals(TOKEN_PROGRAM_ID)) {
+      console.log('[' + index + '] Handled as token instruction');
+      return handleTokenInstruction(publicKey, instruction, accountKeys);
       // } else if (programId.equals(StakeProgram.programId)) {
       //   console.log('[' + index + '] Handled as stake instruction');
       //   return handleStakeInstruction(publicKey, instruction, accountKeys);
-      // } else if (programId.equals(TOKEN_PROGRAM_ID)) {
-      //   console.log('[' + index + '] Handled as token instruction');
-      //   return handleTokenInstruction(publicKey, instruction, accountKeys);
       // } else if (MARKETS.some((market) => market.programId && market.programId.equals(programId))) {
       //   console.log('[' + index + '] Handled as dex instruction');
       //   const decodedInstruction = decodeInstruction(decoded);
@@ -412,32 +423,34 @@ const handleSystemInstruction = (
 //   };
 // };
 
-// const handleTokenInstruction = (
-//   publicKey: PublicKey,
-//   instruction: { programIdIndex: any; accounts: any; data: any },
-//   accountKeys: { [key: string | number]: any }
-// ) => {
-//   const { programIdIndex, accounts, data } = instruction;
-//   if (!programIdIndex || !accounts || !data) {
-//     return;
-//   }
+const handleTokenInstruction = (
+  publicKey: PublicKey,
+  instruction: { programIdIndex: any; accounts: any; data: any },
+  accountKeys: { [key: string | number]: any }
+) => {
+  const { programIdIndex, accounts, data } = instruction;
+  if (!programIdIndex || !accounts || !data) {
+    return;
+  }
 
-//   // construct token instruction
-//   const tokenInstruction = {
-//     programId: accountKeys[programIdIndex],
-//     keys: accounts.map((accountIndex: string | number) => ({
-//       pubkey: accountKeys[accountIndex]
-//     })),
-//     data: bs58.decode(data) as Buffer
-//   };
+  // construct token instruction
+  const tokenInstruction = {
+    programId: accountKeys[programIdIndex],
+    keys: accounts.map((accountIndex: string | number) => ({
+      pubkey: accountKeys[accountIndex]
+    })),
+    data: Buffer.from(bs58.decode(data))
+  };
 
-//   const decoded = decodeTokenInstruction(tokenInstruction);
+  console.log('tokenInstruction', tokenInstruction);
 
-//   return {
-//     type: decoded.type,
-//     data: decoded.params
-//   };
-// };
+  const decoded = decodeTokenInstruction(tokenInstruction);
+
+  return {
+    type: decoded.type,
+    data: decoded.params
+  };
+};
 
 // const getNewOrderData = (accounts: any, accountKeys: any) => {
 //   const openOrdersPubkey = getAccountByIndex(accounts, accountKeys, NEW_ORDER_OPEN_ORDERS_INDEX);

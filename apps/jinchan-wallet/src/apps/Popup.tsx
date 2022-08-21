@@ -1,19 +1,20 @@
 // import { PublicKey } from '@solana/web3.js';
 import bs58 from 'bs58';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useWallet } from '../AppProvider';
 import { Channels, Message } from '../chrome/events';
+import ConnectPopup from '../components/Popup/Connet';
+import SignMsgPopup from '../components/Popup/SignMsg';
+import SignTxPopup from '../components/Popup/SignTx';
 import { ResMsgType } from '../utils/reqRes';
-import { decodeMessage } from '../utils/transactions';
+// import { decodeMessage } from '../utils/transactions';
 // import { Wallet } from '../Wallet';
 
 export default function App() {
-  const origin = (() => {
-    // params 和 chrome background 里的 launchPop 里呼应
-    // #origin=http://localhost:3000&network=testnet&request={"jsonrpc":"2.0","id":1,"method":"connect","params":{"network":"testnet"}}'
-    const params = new URLSearchParams(window.location.hash.slice(1));
-    return params.get('origin');
-  })();
+  // params 和 chrome background 里的 launchPop 里呼应
+  // #origin=http://localhost:3000&network=testnet&request={"jsonrpc":"2.0","id":1,"method":"connect","params":{"network":"testnet"}}'
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const origin = params.get('origin');
 
   const accounts: any[] = [];
   const wallet = useWallet();
@@ -52,11 +53,16 @@ export default function App() {
     [wallet, accounts]
   );
 
-  const request = useMemo(() => {
-    return requests[0];
-  }, [requests]);
+  const request = requests[0];
 
-  const { messages, messageDisplay } = useMemo(() => {
+  if (!origin) return null;
+  if (!wallet) return null;
+  if (!request) {
+    window.close();
+    return null;
+  }
+
+  const { messages, messageDisplay } = (() => {
     console.log('request', request);
     if (!request || request.method === 'connect') {
       return { messages: [], messageDisplay: 'tx' };
@@ -88,34 +94,16 @@ export default function App() {
       default:
         throw new Error('Unexpected method: ' + request.method);
     }
-  }, [request]);
+  })();
 
-  useMemo(() => {
-    if (!wallet) return;
-    Promise.all(messages.map((m: any) => decodeMessage(wallet.connection, wallet, m))).then(
-      (msg) => {
-        console.log({ msg });
-      }
-    );
-  }, [messages, wallet]);
+  console.log({ messages, messageDisplay });
 
-  if (!request) {
-    // window.close();
-    return null;
-  }
-
-  if (!wallet) {
-    return <div>no wallet</div>;
-  }
-
-  console.log({ messageDisplay, messages });
-  if (request.method === 'connect') {
-    return (
-      <div>
-        <p>connect</p>
-        <p>{origin}</p>
-        <button
-          onClick={() => {
+  switch (request.method) {
+    case 'connect': {
+      return (
+        <ConnectPopup
+          origin={origin}
+          cancelAction={() => {
             postMessage(
               {
                 error: 'Transaction cancelled',
@@ -125,12 +113,8 @@ export default function App() {
                 popRequest();
               }
             );
-          }}>
-          cancel
-        </button>
-        <button
-          onClick={() => {
-            if (!wallet) return;
+          }}
+          approveAction={() => {
             postMessage(
               {
                 method: 'connected',
@@ -144,19 +128,19 @@ export default function App() {
                 popRequest();
               }
             );
-          }}>
-          approve
-        </button>
-      </div>
-    );
-  }
+          }}
+        />
+      );
+    }
 
-  if (request.method === 'signTransaction') {
-    return (
-      <div>
-        <p>some info about the transfer</p>
-        <button
-          onClick={async () => {
+    // signMsg
+    case 'sign': {
+      return (
+        <SignMsgPopup
+          origin={origin}
+          messageDisplay={messageDisplay as 'utf8' | 'hex'}
+          message={messages[0] as Uint8Array}
+          approveAction={async () => {
             postMessage(
               {
                 result: {
@@ -169,31 +153,73 @@ export default function App() {
                 popRequest();
               }
             );
-          }}>
-          Approve
-        </button>
-      </div>
-    );
+          }}
+          cancelAction={() => {
+            postMessage(
+              {
+                error: 'Transaction cancelled',
+                id: request.id
+              },
+              () => {
+                popRequest();
+              }
+            );
+          }}
+        />
+      );
+    }
+
+    case 'signTransaction': {
+      return (
+        <SignTxPopup
+          origin={origin}
+          message={messages[0] as Uint8Array}
+          cancelAction={() => {
+            postMessage(
+              {
+                error: 'Transaction cancelled',
+                id: request.id
+              },
+              () => {
+                popRequest();
+              }
+            );
+          }}
+          approveAction={async () => {
+            postMessage(
+              {
+                result: {
+                  signature: await wallet.createSignature(messages[0] as Uint8Array),
+                  publicKey: wallet.publicKey.toBase58()
+                },
+                id: request.id
+              },
+              () => {
+                popRequest();
+              }
+            );
+          }}
+        />
+      );
+    }
+
+    default:
+      return <div>Popup</div>;
   }
-  return <div>Popup </div>;
 }
 
 function getInitialRequests() {
-  const urlParams = new URLSearchParams(window.location.hash.slice(1));
+  const hashParams = window.location.hash.slice(1);
+  const urlParams = new URLSearchParams(hashParams);
   const request: Message = JSON.parse(urlParams.get('request') || '""');
   console.log('getInitialRequests', request);
   if (request.method === 'sign') {
     const dataObj = request.params.data;
-    // Deserialize `data` into a Uint8Array
     if (!dataObj) {
       throw new Error('Missing "data" params for "sign" request');
     }
-
-    const data = new Uint8Array(Object.keys(dataObj).length);
-    console.log('getInitialRequests', { data }, Object.entries(dataObj));
-    // for (const [index, value] of Object.entries(dataObj)) {
-    //   data[index] = value;
-    // }
+    // Deserialize `data` into a Uint8Array
+    const data = Uint8Array.from(Object.values(dataObj));
     request.params.data = data;
   }
 

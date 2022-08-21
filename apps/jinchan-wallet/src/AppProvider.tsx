@@ -1,6 +1,7 @@
 import { Cluster, clusterApiUrl, Connection } from '@solana/web3.js';
-import React, { useContext, useEffect, useState } from 'react';
-import { useMemo } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
+import Spinner from 'react-bootstrap/Spinner';
+
 import { useLocalStorageState } from './hooks/useLocalStorageState';
 import { useUnlockedMnemonicAndSeed } from './hooks/useUnlockedMnemonicAndSeed';
 import { WalletSelector } from './utils/wallet/types';
@@ -57,7 +58,7 @@ export function AppProvider({ children }: React.PropsWithChildren) {
 
   return (
     <AppContext.Provider value={{ network, setNetwork, connection, wallet }}>
-      {children}
+      {(wallet && children) || <Spinner animation="grow" />}
     </AppContext.Provider>
   );
 }

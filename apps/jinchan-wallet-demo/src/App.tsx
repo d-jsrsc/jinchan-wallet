@@ -10,11 +10,13 @@ import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
-import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
+import {
+  PhantomWalletAdapter,
+  SolletExtensionWalletAdapter,
+} from "@solana/wallet-adapter-wallets";
 
 import { JinchanWalletAdapter } from "@jsrsc/wallet-adapter-jinchan";
 import { SendOneLamportToRandomAddress } from "./Send";
-import Test from "./Test";
 
 // import { SendOneLamportToRandomAddress } from "./Demo";
 
@@ -23,7 +25,7 @@ require("@solana/wallet-adapter-react-ui/styles.css");
 
 export const Wallet: FC = () => {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-  const network = WalletAdapterNetwork.Testnet;
+  const network = WalletAdapterNetwork.Devnet;
 
   // You can also provide a custom RPC endpoint.
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
@@ -35,7 +37,7 @@ export const Wallet: FC = () => {
     () => [
       new PhantomWalletAdapter(),
       // new SolletWalletAdapter({ network }),
-      // new SolletExtensionWalletAdapter({ network }),
+      new SolletExtensionWalletAdapter({ network }),
 
       new JinchanWalletAdapter({ network }),
     ],
@@ -46,7 +48,6 @@ export const Wallet: FC = () => {
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <Test />
           {/* Your app's components go here, nested within the context providers. */}
           {/* <SendOneLamportToRandomAddress /> */}
           <SendOneLamportToRandomAddress />
